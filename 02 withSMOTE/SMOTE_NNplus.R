@@ -2,6 +2,10 @@ library(tidyverse)
 library(keras)
 require(gbm)
 require(data.table)
+library(pROC)
+library(rpart)
+library(ROSE)
+library(DMwR)   # Loading DMwr to balance the unbalanced class
 # data <- read.csv('./data/carclaims.csv')
 # glimpse(data)
 
@@ -53,6 +57,12 @@ str(data)
 #########  choosing learning and test sample
 ###############################################
 
+## Smote : Synthetic Minority Oversampling Technique To Handle Class Imbalancy In Binary Classification
+balanced.data <- SMOTE(FraudFound ~., data, perc.over = (14000/923)*100, k = 5, perc.under = 105)
+table(balanced.data$FraudFound)
+
+data <- balanced.data
+
 set.seed(100)
 ll <- sample(c(1:nrow(data)), round(0.8*nrow(data)), replace = FALSE)
 learn <- data[ll,]
@@ -61,39 +71,15 @@ test <- data[-ll,]
 (n_t <- nrow(test))
 # sum(learn$ClaimNb)/sum(learn$Exposure)
 
-##################################################
-# Applying GBM to check for the feature importance
-##################################################
-
-dataGBM <- data
-dataGBM$FraudFound <- ifelse(dataGBM$FraudFound == "Yes", 1, 0)
-
-learn <- dataGBM[ll,]
-test <- dataGBM[-ll,]
-
-param = c(100, 5, 0.03)
-train <- as.data.table(learn)
-g = gbm(FraudFound ~ ., data=train[,with=FALSE], n.trees = param[1], interaction.depth = param[2], shrinkage = param[3], distribution = "bernoulli", verbose=T)
-summary(g)
-
-pf = predict(g, test, n.trees = param[1], type = "response")
-hist(pf)
-
-## Calculating ROC Curve for model
-library(ROCR)
-require(verification)
-
-pred<-prediction(pf,test$FraudFound)
-perf <- performance(pred,"tpr","fpr")
-plot(perf)
-abline(a=0,b=1, col="red", lty=2)
-
 
 ##############################################
 ###############  GLM analysis ###############
 ##############################################
 
 dataGLM <- data
+
+dataGLM$FraudFound <- ifelse(dataGLM$FraudFound == "Yes", 1, 0)
+
 learnGLM <- dataGLM[ll,]
 testGLM <- dataGLM[-ll,]
 (n_l <- nrow(learnGLM))
@@ -150,7 +136,7 @@ dataNN <- Features.PreProcess(dataGLM)
 #########  choosing learning and test sample
 ###############################################
 table(dataNN$FraudFound)
-dataNN$FraudFound <- ifelse(dataNN$FraudFound == "Yes", 1, 0)
+# dataNN$FraudFound <- ifelse(dataNN$FraudFound == "Yes", 1, 0)
 
 # data_balanced_under <- ovun.sample(FraudFound ~ ., data = dataNN, method = "under", N = 923*2, seed = 1)$data
 # table(data_balanced_under$FraudFound)

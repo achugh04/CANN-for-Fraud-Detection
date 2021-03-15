@@ -57,12 +57,6 @@ str(data)
 #########  choosing learning and test sample
 ###############################################
 
-## Smote : Synthetic Minority Oversampling Technique To Handle Class Imbalancy In Binary Classification
-balanced.data <- SMOTE(FraudFound ~., data, perc.over = (14000/923)*100, k = 5, perc.under = 105)
-table(balanced.data$FraudFound)
-
-data <- balanced.data
-
 set.seed(100)
 ll <- sample(c(1:nrow(data)), round(0.8*nrow(data)), replace = FALSE)
 learn <- data[ll,]
@@ -117,9 +111,11 @@ Features.PreProcess <- function(dat2){
   dat2 <- PreProcess.Continuous("Age", dat2)
   dat2 <- PreProcess.Continuous("Fault", dat2)
   dat2 <- PreProcess.Continuous("PastNumberOfClaims", dat2)
-  dat2 <- PreProcess.Continuous("VehiclePrice", dat2)
+  # dat2 <- PreProcess.Continuous("VehiclePrice", dat2)
+  dat2$VehiclePriceX <- as.integer(dat2$VehiclePrice)-1
   dat2 <- PreProcess.Continuous("AddressChange.Claim", dat2)
-  dat2 <- PreProcess.Continuous("Make", dat2)
+  # dat2 <- PreProcess.Continuous("Make", dat2)
+  dat2$MakeX <- as.integer(dat2$Make)-1
   dat2 <- PreProcess.Continuous("DriverRating", dat2)
   dat2 <- PreProcess.Continuous("VehicleCategory", dat2)
   dat2 <- PreProcess.Continuous("NumberOfSuppliments", dat2)
@@ -155,15 +151,19 @@ testNN <- dataNN[-ll,]
 #########  neural network definitions for model (3.11)
 #######################################################
 
-learnNN.x <- list(as.matrix(learnNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX")]),
-                as.matrix(learnNN[,c("AgeX", "FaultX", "DriverRatingX", "MaritalStatusX", "PoliceReportFiledX")]),
-                as.matrix(learnNN[,c("daysDiffX", "DeductibleX", "PastNumberOfClaimsX",
-                                     "AddressChange.ClaimX", "NumberOfSupplimentsX", "BasePolicyX",
-                                     "AccidentAreaX")]),
-                as.matrix(learnNN$fitGLM) )
+learnNN.x <- list(as.matrix(learnNN[,c("VehicleCategoryX", "AgeX", "FaultX", "DriverRatingX",
+                                       "MaritalStatusX", "PoliceReportFiledX")]),
+                  as.matrix(learnNN[,"VehiclePriceX"]),
+                  as.matrix(learnNN[,"MakeX"]),
+                  as.matrix(learnNN[,c("daysDiffX", "DeductibleX", "PastNumberOfClaimsX",
+                                       "AddressChange.ClaimX", "NumberOfSupplimentsX", "BasePolicyX",
+                                       "AccidentAreaX")]),
+                  as.matrix(learnNN$fitGLM) )
 
-testNN.x <- list(as.matrix(testNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX")]),
-                 as.matrix(testNN[,c("AgeX", "FaultX", "DriverRatingX", "MaritalStatusX", "PoliceReportFiledX")]),
+testNN.x <- list(as.matrix(testNN[,c("VehicleCategoryX", "AgeX", "FaultX", "DriverRatingX",
+                                      "MaritalStatusX", "PoliceReportFiledX")]),
+                 as.matrix(testNN[,"VehiclePriceX"]),
+                 as.matrix(testNN[,"MakeX"]),
                  as.matrix(testNN[,c("daysDiffX", "DeductibleX", "PastNumberOfClaimsX",
                                       "AddressChange.ClaimX", "NumberOfSupplimentsX", "BasePolicyX",
                                       "AccidentAreaX")]),
@@ -177,36 +177,43 @@ neurons <- c(20,15,10)
 ###############################################
 
 model.2IA <- function(){
-  Cont1 <- layer_input(shape = c(3), dtype = 'float32', name='Cont1')
-  Cont2 <- layer_input(shape = c(5), dtype = 'float32', name='Cont2')
+  Cont1 <- layer_input(shape = c(6), dtype = 'float32', name='Cont1')
+  VehiclePrice <- layer_input(shape = c(1), dtype = 'int32', name = 'Cat1')
+  Make <- layer_input(shape = c(1), dtype = 'int32', name = 'Cat2')
+  # Cont2 <- layer_input(shape = c(5), dtype = 'float32', name='Cont2')
   Cont3 <- layer_input(shape = c(7), dtype = 'float32', name='Cont3')
   GLM   <- layer_input(shape = c(1), dtype = 'float32', name = 'GLM')     
-  x.input <- c(Cont1, Cont2, Cont3, GLM)
-  #
-  # Cat1_embed = Cat1 %>%  
-  #   layer_embedding(input_dim = No.Labels, output_dim = 2, trainable=TRUE, 
-  #                   input_length = 1, name = 'Cat1_embed') %>%
-  #   layer_flatten(name='Cat1_flat')
-  #
-  # NNetwork1 = list(Cont1, Cat1_embed) %>% layer_concatenate(name='cont') %>%
-  #   layer_dense(units=neurons[1], activation='tanh', name='hidden1') %>%
-  #   layer_dense(units=neurons[2], activation='tanh', name='hidden2') %>%
-  #   layer_dense(units=neurons[3], activation='tanh', name='hidden3') %>%
-  #   layer_dense(units=1, activation='linear', name='NNetwork1', 
-  #               weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
-  NNetwork1 = Cont1 %>%
+  x.input <- c(Cont1, VehiclePrice, Make, Cont3, GLM)
+
+  VePrEmb = VehiclePrice %>%
+    layer_embedding(input_dim = 4, output_dim = 2, trainable=TRUE,
+                    input_length = 1, name = 'VePrEmb') %>%
+    layer_flatten(name='VePr_flat')
+  
+  MakeEmb = Make %>%
+    layer_embedding(input_dim = 4, output_dim = 2, trainable=TRUE,
+                    input_length = 1, name = 'MakeEmb') %>%
+    layer_flatten(name='Make_flat')
+
+  NNetwork1 = list(Cont1, VePrEmb, MakeEmb) %>% layer_concatenate(name='concate') %>%
     layer_dense(units=neurons[1], activation='tanh', name='hidden1') %>%
     layer_dense(units=neurons[2], activation='tanh', name='hidden2') %>%
     layer_dense(units=neurons[3], activation='tanh', name='hidden3') %>%
-    layer_dense(units=1, activation='tanh', name='NNetwork1') 
+    layer_dense(units=1, activation='tanh', name='NNetwork1')
                 # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
+  # NNetwork1 = Cont1 %>%
+  #   layer_dense(units=neurons[1], activation='tanh', name='hidden1') %>%
+  #   layer_dense(units=neurons[2], activation='tanh', name='hidden2') %>%
+  #   layer_dense(units=neurons[3], activation='tanh', name='hidden3') %>%
+  #   layer_dense(units=1, activation='tanh', name='NNetwork1') 
+  #               # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
-  NNetwork2 = Cont2 %>%
-    layer_dense(units=neurons[1], activation='tanh', name='hidden4') %>%
-    layer_dense(units=neurons[2], activation='tanh', name='hidden5') %>%
-    layer_dense(units=neurons[3], activation='tanh', name='hidden6') %>%
-    layer_dense(units=1, activation='tanh', name='NNetwork2') 
-                # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
+  # NNetwork2 = Cont2 %>%
+  #   layer_dense(units=neurons[1], activation='tanh', name='hidden4') %>%
+  #   layer_dense(units=neurons[2], activation='tanh', name='hidden5') %>%
+  #   layer_dense(units=neurons[3], activation='tanh', name='hidden6') %>%
+  #   layer_dense(units=1, activation='tanh', name='NNetwork2') 
+  #               # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
   NNetwork3 = Cont3 %>%
     layer_dense(units=neurons[1], activation='tanh', name='hidden7') %>%
@@ -215,7 +222,7 @@ model.2IA <- function(){
     layer_dense(units=1, activation='tanh', name='NNetwork3')
                 # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
-  NNoutput = list(NNetwork1, NNetwork2, NNetwork3, GLM) %>% layer_add(name='Add') %>%
+  NNoutput = list(NNetwork1, NNetwork3, GLM) %>% layer_add(name='Add') %>%
     layer_dense(units=1, activation='sigmoid', name = 'NNoutput')
                  # trainable=TRUE, weights=list(array(c(1), dim=c(1,1)), array(0, dim=c(1))))
   
