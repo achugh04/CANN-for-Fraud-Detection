@@ -202,14 +202,14 @@ testNN <- dataNN[-ll,]
 learnNN.x <- list(as.matrix(learnNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX","AgeX", "FaultX", "DriverRatingX",
                                        "MaritalStatusX", "PoliceReportFiledX", "daysDiffX", "DeductibleX",
                                        "PastNumberOfClaimsX", "AddressChange.ClaimX", "NumberOfSupplimentsX",
-                                       "BasePolicyX", "AccidentAreaX")]),
-                as.matrix(learnNN$fitGLM) )
+                                       "BasePolicyX", "AccidentAreaX")]))
+                # as.matrix(learnNN$fitGLM) )
 
 testNN.x <- list(as.matrix(testNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX","AgeX", "FaultX", "DriverRatingX",
                                      "MaritalStatusX", "PoliceReportFiledX", "daysDiffX", "DeductibleX",
                                      "PastNumberOfClaimsX", "AddressChange.ClaimX", "NumberOfSupplimentsX",
-                                     "BasePolicyX", "AccidentAreaX")]),
-                 as.matrix(testNN$fitGLM) )
+                                     "BasePolicyX", "AccidentAreaX")]))
+                 # as.matrix(testNN$fitGLM) )
 
 neurons <- c(20,15,10)
 # No.Labels <- length(unique(learn$VehBrandX))
@@ -222,8 +222,8 @@ model.2IA <- function(){
   Cont1 <- layer_input(shape = c(15), dtype = 'float32', name='Cont1')
   Cont2 <- layer_input(shape = c(5), dtype = 'float32', name='Cont2')
   Cont3 <- layer_input(shape = c(7), dtype = 'float32', name='Cont3')
-  GLM   <- layer_input(shape = c(1), dtype = 'float32', name = 'GLM')
-  x.input <- c(Cont1, GLM)
+  # GLM   <- layer_input(shape = c(1), dtype = 'float32', name = 'GLM')     
+  x.input <- c(Cont1)
   #
   # Cat1_embed = Cat1 %>%  
   #   layer_embedding(input_dim = No.Labels, output_dim = 2, trainable=TRUE, 
@@ -240,7 +240,7 @@ model.2IA <- function(){
     layer_dense(units=neurons[1], activation='tanh', name='hidden1') %>%
     layer_dense(units=neurons[2], activation='tanh', name='hidden2') %>%
     layer_dense(units=neurons[3], activation='tanh', name='hidden3') %>%
-    layer_dense(units=1, activation='tanh', name='NNetwork1') 
+    layer_dense(units=1, activation='sigmoid', name='NNetwork1') 
                 # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
   NNetwork2 = Cont2 %>%
@@ -257,11 +257,11 @@ model.2IA <- function(){
     layer_dense(units=1, activation='tanh', name='NNetwork3')
                 # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
-  NNoutput = list(NNetwork1, GLM) %>% layer_add(name='Add') %>%
-    layer_dense(units=1, activation='sigmoid', name = 'NNoutput')
-                 # trainable=TRUE, weights=list(array(c(1), dim=c(1,1)), array(0, dim=c(1))))
+  # NNoutput = list(NNetwork1) %>% layer_add(name='Add') %>%
+  #   layer_dense(units=1, activation='sigmoid', name = 'NNoutput')
+  #                # trainable=TRUE, weights=list(array(c(1), dim=c(1,1)), array(0, dim=c(1))))
   
-  model <- keras_model(inputs = x.input, outputs = c(NNoutput))
+  model <- keras_model(inputs = x.input, outputs = c(NNetwork1))
   model %>% compile(optimizer = optimizer_nadam(), loss = 'binary_crossentropy')        
   model
 }

@@ -15,21 +15,21 @@ yLabel = processed_data['FraudFound']
 # Change the attributes of make
 processed_data = processed_data.replace({'Make':
     {
-        'Accura': 'Honda',
-        'BMW': 'Honda',
-        'Ferrari': 'Honda',
-        'Jaguar': 'Honda',
-        'Lexus': 'Honda',
-        'Mecedes': 'Honda',
-        'Nisson': 'Honda',
-        'Toyota': 'Honda',
-        'Mazda': 'Honda',
-        'Chevrolet': 'Ford',
-        'Dodge': 'Ford',
-        'Pontiac': 'Mercury',
-        'Saturn': 'Mercury',
-        'Porche': 'VW',
-        'Saab': 'VW'
+        'Accura': 'Make1',
+        'BMW': 'Make1',
+        'Ferrari': 'Make1',
+        'Jaguar': 'Make1',
+        'Lexus': 'Make1',
+        'Mecedes': 'Make1',
+        'Nisson': 'Make1',
+        'Toyota': 'Make1',
+        'Mazda': 'Make1',
+        'Chevrolet': 'Make2',
+        'Dodge': 'Make2',
+        'Pontiac': 'Make3',
+        'Saturn': 'Make3',
+        'Porche': 'Make4',
+        'Saab': 'Make4'
     }
 })
 
@@ -160,17 +160,18 @@ processed_data['daysDiff'] = day_diff
 processed_data['daysDiff'][processed_data['daysDiff']<0] = 0
 
 # now drop the original attibutes, like 'Month' column(we don't need anymore)
+processed_data.drop(['Year'], inplace=True, axis=1)
 processed_data.drop(['Month'], axis=1, inplace=True)
 processed_data.drop(['MonthClaimed'], axis=1, inplace=True)
-processed_data.drop(['DayOfWeek'], axis=1, inplace=True)
-processed_data.drop(['DayOfWeekClaimed'], axis=1, inplace=True)
 processed_data.drop(['WeekOfMonth'], inplace=True, axis=1)
 processed_data.drop(['WeekOfMonthClaimed'], inplace=True, axis=1)
-processed_data.drop(['PolicyType'], axis=1, inplace=True)
-processed_data.drop(['AgeOfPolicyHolder'], inplace=True, axis=1)
-processed_data.drop(['Year'], inplace=True, axis=1)
-processed_data.drop(['RepNumber'], axis=1, inplace=True)
+processed_data.drop(['DayOfWeek'], axis=1, inplace=True)
+processed_data.drop(['DayOfWeekClaimed'], axis=1, inplace=True)
+
 processed_data.drop(['PolicyNumber'], inplace=True, axis=1)
+processed_data.drop(['PolicyType'], axis=1, inplace=True)
+processed_data.drop(['RepNumber'], axis=1, inplace=True)
+processed_data.drop(['AgeOfPolicyHolder'], inplace=True, axis=1)
 
 # Change the class attribute
 processed_data = processed_data.replace({'FraudFound':
@@ -186,7 +187,12 @@ processed_data.drop(['FraudFound'], inplace=True, axis=1)
 
 processed_data.to_csv(r"./data/Pre-Processed.csv", index=False)
 
+
+
+###############################################
 # Here onwards we will perform one-hot encoding
+###############################################
+
 processed_data_encoding = processed_data
 
 #select all the attributes of type object

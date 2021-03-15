@@ -2,9 +2,6 @@ library(tidyverse)
 library(keras)
 require(gbm)
 require(data.table)
-library(pROC)
-library(rpart)
-library(ROSE)
 # data <- read.csv('./data/carclaims.csv')
 # glimpse(data)
 
@@ -97,9 +94,6 @@ abline(a=0,b=1, col="red", lty=2)
 ##############################################
 
 dataGLM <- data
-
-dataGLM$FraudFound <- ifelse(dataGLM$FraudFound == "Yes", 1, 0)
-
 learnGLM <- dataGLM[ll,]
 testGLM <- dataGLM[-ll,]
 (n_l <- nrow(learnGLM))
@@ -117,30 +111,6 @@ summary(d.glm)
 learnGLM$fitGLM <- fitted(d.glm)
 testGLM$fitGLM <- predict(d.glm, newdata=testGLM, type="response")
 dataGLM$fitGLM <- predict(d.glm, newdata=dataGLM, type="response")
-
-
-result.roc <- roc(testGLM$FraudFound, testGLM$fitGLM)
-auc(result.roc)
-# plot(result.roc, print.thres="best", print.thres.best.method="closest.topleft")
-
-# Get some more values.
-result.coords <- coords(
-  result.roc, "best", best.method="closest.topleft", ret=c("threshold", "accuracy"))
-
-print(result.coords)
-
-pred<-prediction(testGLM$fitGLM,testGLM$FraudFound)
-perf <- performance(pred,"tpr","fpr")
-plot(perf)
-abline(a=0,b=1, col="red", lty=2)
-
-# Make prediction using the best top-left cutoff.
-result.predicted.label <- ifelse(testGLM$fitGLM > result.coords[1,1], 1, 0)
-
-xtabs(~ result.predicted.label + testGLM$FraudFound)
-
-accuracy.meas(testGLM$FraudFound, result.predicted.label)
-
 
 ######################################################
 #########  feature pre-processing for (CA)NN Embedding
@@ -174,13 +144,13 @@ Features.PreProcess <- function(dat2){
   dat2
 }
 
-dataNN <- Features.PreProcess(dataGLM)
+dataNN <- Features.PreProcess(dataGLM)     
 
 ###############################################
 #########  choosing learning and test sample
 ###############################################
 table(dataNN$FraudFound)
-# dataNN$FraudFound <- ifelse(dataNN$FraudFound == "Yes", 1, 0)
+dataNN$FraudFound <- ifelse(dataNN$FraudFound == "Yes", 1, 0)
 
 # data_balanced_under <- ovun.sample(FraudFound ~ ., data = dataNN, method = "under", N = 923*2, seed = 1)$data
 # table(data_balanced_under$FraudFound)
@@ -199,17 +169,19 @@ testNN <- dataNN[-ll,]
 #########  neural network definitions for model (3.11)
 #######################################################
 
-learnNN.x <- list(as.matrix(learnNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX","AgeX", "FaultX", "DriverRatingX",
-                                       "MaritalStatusX", "PoliceReportFiledX", "daysDiffX", "DeductibleX",
-                                       "PastNumberOfClaimsX", "AddressChange.ClaimX", "NumberOfSupplimentsX",
-                                       "BasePolicyX", "AccidentAreaX")]),
-                as.matrix(learnNN$fitGLM) )
+learnNN.x <- list(as.matrix(learnNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX")]),
+                as.matrix(learnNN[,c("AgeX", "FaultX", "DriverRatingX", "MaritalStatusX", "PoliceReportFiledX")]),
+                as.matrix(learnNN[,c("daysDiffX", "DeductibleX", "PastNumberOfClaimsX",
+                                     "AddressChange.ClaimX", "NumberOfSupplimentsX", "BasePolicyX",
+                                     "AccidentAreaX")]))
+                # as.matrix(learnNN$fitGLM) )
 
-testNN.x <- list(as.matrix(testNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX","AgeX", "FaultX", "DriverRatingX",
-                                     "MaritalStatusX", "PoliceReportFiledX", "daysDiffX", "DeductibleX",
-                                     "PastNumberOfClaimsX", "AddressChange.ClaimX", "NumberOfSupplimentsX",
-                                     "BasePolicyX", "AccidentAreaX")]),
-                 as.matrix(testNN$fitGLM) )
+testNN.x <- list(as.matrix(testNN[,c("VehiclePriceX", "MakeX", "VehicleCategoryX")]),
+                 as.matrix(testNN[,c("AgeX", "FaultX", "DriverRatingX", "MaritalStatusX", "PoliceReportFiledX")]),
+                 as.matrix(testNN[,c("daysDiffX", "DeductibleX", "PastNumberOfClaimsX",
+                                      "AddressChange.ClaimX", "NumberOfSupplimentsX", "BasePolicyX",
+                                      "AccidentAreaX")]))
+                 # as.matrix(testNN$fitGLM) )
 
 neurons <- c(20,15,10)
 # No.Labels <- length(unique(learn$VehBrandX))
@@ -219,11 +191,11 @@ neurons <- c(20,15,10)
 ###############################################
 
 model.2IA <- function(){
-  Cont1 <- layer_input(shape = c(15), dtype = 'float32', name='Cont1')
+  Cont1 <- layer_input(shape = c(3), dtype = 'float32', name='Cont1')
   Cont2 <- layer_input(shape = c(5), dtype = 'float32', name='Cont2')
   Cont3 <- layer_input(shape = c(7), dtype = 'float32', name='Cont3')
-  GLM   <- layer_input(shape = c(1), dtype = 'float32', name = 'GLM')
-  x.input <- c(Cont1, GLM)
+  GLM   <- layer_input(shape = c(1), dtype = 'float32', name = 'GLM')     
+  x.input <- c(Cont1, Cont2, Cont3)
   #
   # Cat1_embed = Cat1 %>%  
   #   layer_embedding(input_dim = No.Labels, output_dim = 2, trainable=TRUE, 
@@ -257,7 +229,7 @@ model.2IA <- function(){
     layer_dense(units=1, activation='tanh', name='NNetwork3')
                 # weights=list(array(0, dim=c(neurons[3],1)), array(0, dim=c(1))))
   #
-  NNoutput = list(NNetwork1, GLM) %>% layer_add(name='Add') %>%
+  NNoutput = list(NNetwork1, NNetwork2, NNetwork3) %>% layer_add(name='Add') %>%
     layer_dense(units=1, activation='sigmoid', name = 'NNoutput')
                  # trainable=TRUE, weights=list(array(c(1), dim=c(1,1)), array(0, dim=c(1))))
   
@@ -300,7 +272,7 @@ auc(result.roc)
 
 # Get some more values.
 result.coords <- coords(
-    result.roc, "best", best.method="closest.topleft", ret=c("threshold", "accuracy"))
+  result.roc, "best", best.method="closest.topleft", ret=c("threshold", "accuracy"))
 
 print(result.coords)
 
@@ -310,4 +282,3 @@ result.predicted.label <- ifelse(test0$fitGANPlus > result.coords[1,1], 1, 0)
 xtabs(~  result.predicted.label + test0$FraudFound)
 
 accuracy.meas(test0$FraudFound, result.predicted.label)
-
