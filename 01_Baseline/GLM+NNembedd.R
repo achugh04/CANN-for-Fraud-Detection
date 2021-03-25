@@ -251,7 +251,7 @@ learn0$fitGANPlus <- as.vector(model %>% predict(learnNN.x))
 test0 <- testNN
 test0$fitGANPlus <- as.vector(model %>% predict(testNN.x))
 
-pred<-prediction(test0$fitGANPlus,test0$FraudFound)
+pred <- prediction(test0$fitGANPlus,test0$FraudFound)
 perf <- performance(pred,"tpr","fpr")
 plot(perf)
 abline(a=0,b=1, col="red", lty=2)
