@@ -5,58 +5,38 @@ require(data.table)
 library(pROC)
 library(rpart)
 library(ROSE)
-# data <- read.csv('./data/carclaims.csv')
-# glimpse(data)
 
 data <- read.csv('./data/Pre-Processed.csv')
 str(data)
 
-# data$MakeGLM <- as.integer(data$Make)
-# data$AccidentAreaGLM <- as.integer(data$AccidentArea)
-# data$SexGLM <- as.integer(data$Sex)
-# data$MaritalStatusGLM <- as.integer(data$MaritalStatus)
-# data$FraudFound <- ifelse(data$FraudFound == "Yes", 1, 0)
-# 
+data %>% select(-c(Medical.Service.Provider.ID)) -> data
+
+
 # levels(data$MaritalStatus)
 # levels(data$PastNumberOfClaims)
-# data$PastNumberOfClaims <- ordered(data$PastNumberOfClaims, levels = c( "none", "1", "2 to 4", "more than 4"))
+# data$PastNumberOfClaims <- factor(data$PastNumberOfClaims, levels = c( "none", "1", "2 to 4", "more than 4"))
 # levels(data$Days.Policy.Accident)
-# data$Days.Policy.Accident <- ordered(data$Days.Policy.Accident)
+# data$Days.Policy.Accident <- factor(data$Days.Policy.Accident)
 # levels(data$Days.Policy.Claim)
-# data$Days.Policy.Claim <- ordered(data$Days.Policy.Claim, levels = c("8 to 15", "15 to 30", "more than 30"))
+# data$Days.Policy.Claim <- factor(data$Days.Policy.Claim, levels = c("8 to 15", "15 to 30", "more than 30"))
 # levels(data$AgeOfVehicle)
-# data$AgeOfVehicle <- ordered(data$AgeOfVehicle, levels = c("less than 4 years", "4 to 6 years", "more than 7"))
+# data$AgeOfVehicle <- factor(data$AgeOfVehicle, levels = c("less than 4 years", "4 to 6 years", "more than 7"))
 # levels(data$NumberOfSuppliments)
-# data$NumberOfSuppliments <- ordered(data$NumberOfSuppliments, levels = c("none", "1 to 2", "3 to 5", "more than 5"))
+# data$NumberOfSuppliments <- factor(data$NumberOfSuppliments, levels = c("none", "1 to 2", "3 to 5", "more than 5"))
 # levels(data$AddressChange.Claim)
-# data$AddressChange.Claim <- ordered(data$AddressChange.Claim, levels = c("no change", "0 to 3 years", "4 to 8 years"))
+# data$AddressChange.Claim <- factor(data$AddressChange.Claim, levels = c("no change", "0 to 3 years", "4 to 8 years"))
 # levels(data$NumberOfCars)
-# data$NumberOfCars <- ordered(data$NumberOfCars)
+# data$NumberOfCars <- factor(data$NumberOfCars)
+# data$Class <- as.factor(data$Class)
+# str(data)
 
-levels(data$MaritalStatus)
-levels(data$PastNumberOfClaims)
-data$PastNumberOfClaims <- factor(data$PastNumberOfClaims, levels = c( "none", "1", "2 to 4", "more than 4"))
-levels(data$Days.Policy.Accident)
-data$Days.Policy.Accident <- factor(data$Days.Policy.Accident)
-levels(data$Days.Policy.Claim)
-data$Days.Policy.Claim <- factor(data$Days.Policy.Claim, levels = c("8 to 15", "15 to 30", "more than 30"))
-levels(data$AgeOfVehicle)
-data$AgeOfVehicle <- factor(data$AgeOfVehicle, levels = c("less than 4 years", "4 to 6 years", "more than 7"))
-levels(data$NumberOfSuppliments)
-data$NumberOfSuppliments <- factor(data$NumberOfSuppliments, levels = c("none", "1 to 2", "3 to 5", "more than 5"))
-levels(data$AddressChange.Claim)
-data$AddressChange.Claim <- factor(data$AddressChange.Claim, levels = c("no change", "0 to 3 years", "4 to 8 years"))
-levels(data$NumberOfCars)
-data$NumberOfCars <- factor(data$NumberOfCars)
-data$FraudFound <- as.factor(data$FraudFound)
-str(data)
-
+data$Class <- as.factor(data$Class)
 
 ###############################################
 #########  choosing learning and test sample
 ###############################################
 
-set.seed(100)
+# set.seed(100)
 ll <- sample(c(1:nrow(data)), round(0.8*nrow(data)), replace = FALSE)
 learn <- data[ll,]
 test <- data[-ll,]
@@ -69,14 +49,14 @@ test <- data[-ll,]
 ##################################################
 
 dataGBM <- data
-dataGBM$FraudFound <- ifelse(dataGBM$FraudFound == "Yes", 1, 0)
+dataGBM$Class <- ifelse(dataGBM$Class == "0", 0, 1)
 
 learn <- dataGBM[ll,]
 test <- dataGBM[-ll,]
 
 param = c(100, 5, 0.03)
 train <- as.data.table(learn)
-g = gbm(FraudFound ~ ., data=train[,with=FALSE], n.trees = param[1], interaction.depth = param[2], shrinkage = param[3], distribution = "bernoulli", verbose=T)
+g = gbm(Class ~ ., data=train[,with=FALSE], n.trees = param[1], interaction.depth = param[2], shrinkage = param[3], distribution = "bernoulli", verbose=T)
 summary(g)
 
 pf = predict(g, test, n.trees = param[1], type = "response")
@@ -86,7 +66,7 @@ hist(pf)
 library(ROCR)
 require(verification)
 
-pred<-prediction(pf,test$FraudFound)
+pred<-prediction(pf,test$Class)
 perf <- performance(pred,"tpr","fpr")
 plot(perf)
 abline(a=0,b=1, col="red", lty=2)
@@ -98,7 +78,7 @@ abline(a=0,b=1, col="red", lty=2)
 
 dataGLM <- data
 
-dataGLM$FraudFound <- ifelse(dataGLM$FraudFound == "Yes", 1, 0)
+dataGBM$Class <- ifelse(dataGBM$Class == "0", 0, 1)
 
 learnGLM <- dataGLM[ll,]
 testGLM <- dataGLM[-ll,]
@@ -106,20 +86,19 @@ testGLM <- dataGLM[-ll,]
 (n_t <- nrow(testGLM))
 
 {t1 <- proc.time()
-d.glm <- glm(FraudFound ~ daysDiff + Deductible + Age + Fault + PastNumberOfClaims + 
-               VehiclePrice + AddressChange.Claim + Make + DriverRating + VehicleCategory + 
-               NumberOfSuppliments + MaritalStatus + BasePolicy + AccidentArea + PoliceReportFiled,
+d.glm <- glm(Class ~ .,
              data=learnGLM, family=binomial())
 (proc.time()-t1)}
 
 summary(d.glm)
 
 learnGLM$fitGLM <- fitted(d.glm)
+
 testGLM$fitGLM <- predict(d.glm, newdata=testGLM, type="response")
 dataGLM$fitGLM <- predict(d.glm, newdata=dataGLM, type="response")
 
 
-result.roc <- roc(testGLM$FraudFound, testGLM$fitGLM)
+result.roc <- roc(testGLM$Class, testGLM$fitGLM)
 auc(result.roc)
 # plot(result.roc, print.thres="best", print.thres.best.method="closest.topleft")
 
@@ -129,7 +108,7 @@ result.coords <- coords(
 
 print(result.coords)
 
-pred<-prediction(testGLM$fitGLM,testGLM$FraudFound)
+pred<-prediction(testGLM$fitGLM,testGLM$Class)
 perf <- performance(pred,"tpr","fpr")
 plot(perf)
 abline(a=0,b=1, col="red", lty=2)
@@ -137,6 +116,6 @@ abline(a=0,b=1, col="red", lty=2)
 # Make prediction using the best top-left cutoff.
 result.predicted.label <- ifelse(testGLM$fitGLM > result.coords[1,1], 1, 0)
 
-xtabs(~ result.predicted.label + testGLM$FraudFound)
+xtabs(~ result.predicted.label + testGLM$Class)
 
-accuracy.meas(testGLM$FraudFound, result.predicted.label)
+accuracy.meas(testGLM$Class, result.predicted.label)
