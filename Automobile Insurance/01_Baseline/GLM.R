@@ -6,9 +6,9 @@ library(pROC)
 library(rpart)
 library(ROSE)
 # data <- read.csv('./data/carclaims.csv')
-# glimpse(data)
+glimpse(data)
 
-data <- read.csv('./data/Pre-Processed.csv')
+data <- read.csv('~/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/carclaims.csv')
 str(data)
 
 # data$MakeGLM <- as.integer(data$Make)

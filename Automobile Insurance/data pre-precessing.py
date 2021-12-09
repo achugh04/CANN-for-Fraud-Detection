@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import calendar
 
-Data = pd.read_csv("./data/carclaims.csv")
+Data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/carclaims.csv")
 
 # Data[Data['MonthClaimed']=='0'].index
 # processed_data = Data.drop([Data.index[1516]])
@@ -26,9 +26,13 @@ processed_data = processed_data.replace({'Make':
         'Mazda': 'Make1',
         'Chevrolet': 'Make2',
         'Dodge': 'Make2',
+        'VW':'Make2',
+        'Honda':'Make2',
+        'Ford':'Make2',
         'Pontiac': 'Make3',
         'Saturn': 'Make3',
         'Porche': 'Make4',
+        'Mercury':'Make4',
         'Saab': 'Make4'
     }
 })
@@ -96,7 +100,7 @@ processed_data = processed_data.replace({'Age':{0:17}})
 # function to calculate the no of days passed between the accident and the claims.
 # Reporting Gap:
 
-def get_day(year, month, weekOfMonth, dayOfWeek):
+def get_date(year, month, weekOfMonth, dayOfWeek):
     count = 0
     c = calendar.TextCalendar(firstweekday=0)
     l = []
@@ -105,6 +109,8 @@ def get_day(year, month, weekOfMonth, dayOfWeek):
     for j in range(len(l)):
         day = calendar.day_name[l[j].weekday()]
         # print(j,l[j-2])
+        if dayOfWeek ==0:
+            return None
         if day == dayOfWeek:
             count += 1
             if count == weekOfMonth:
@@ -115,7 +121,13 @@ def get_day(year, month, weekOfMonth, dayOfWeek):
 def differ_days(date1, date2):
     a = date1
     b = date2
-    return (a - b).days
+    c = get_date(1994,1,1,"Saturday")
+    if a!=None and b!=None:
+        return (a - b).days
+    elif(a==None):
+        return (b-c).days
+    else:
+        return (a-c).days
 
 
 # replace map
@@ -132,6 +144,7 @@ processed_data["Month"] = pd.to_numeric(processed_data["Month"])
 processed_data["MonthClaimed"] = pd.to_numeric(processed_data["MonthClaimed"])
 
 day_diff = np.zeros((processed_data.shape[0], 1))
+#processed_data[['Month','MonthClaimed']].fillna(6)
 for i in range(processed_data.shape[0]):
     if (processed_data['MonthClaimed'][i] - processed_data['Month'][i]) < 0:
         year2 = processed_data['Year'][i] + 1
@@ -142,7 +155,11 @@ for i in range(processed_data.shape[0]):
         month1 = processed_data['Month'][i]
         week1 = processed_data['WeekOfMonth'][i]
         day1 = processed_data['DayOfWeek'][i]
-        day_diff[i] = differ_days(get_day(year2, month2, week2, day2), get_day(year1, month1, week1, day1))
+        if (month1==0):
+            month1=6
+        elif(month2==0):
+            month2=6
+        day_diff[i] = differ_days(get_date(year2, month2, week2, day2), get_date(year1, month1, week1, day1))
     else:
         year2 = processed_data['Year'][i]
         month2 = processed_data['MonthClaimed'][i]
@@ -152,12 +169,16 @@ for i in range(processed_data.shape[0]):
         month1 = processed_data['Month'][i]
         week1 = processed_data['WeekOfMonth'][i]
         day1 = processed_data['DayOfWeek'][i]
-        day_diff[i] = differ_days(get_day(year2, month2, week2, day2), get_day(year1, month1, week1, day1))
+        if (month1==0):
+            month1=6
+        elif(month2==0):
+            month2=6
+        day_diff[i] = differ_days(get_date(year2, month2, week2, day2), get_date(year1, month1, week1, day1))
     # print(i, day_diff[i])
 
 # adding column to the existing dataframe
 processed_data['daysDiff'] = day_diff
-processed_data['daysDiff'][processed_data['daysDiff']<0] = 0
+processed_data['daysDiff'][processed_data['daysDiff']<1] = 0
 
 # now drop the original attibutes, like 'Month' column(we don't need anymore)
 processed_data.drop(['Year'], inplace=True, axis=1)
@@ -185,8 +206,8 @@ processed_data = processed_data.replace({'FraudFound':
 yLabel = processed_data['FraudFound']
 processed_data.drop(['FraudFound'], inplace=True, axis=1)
 
-processed_data.to_csv(r"./data/Pre-Processed.csv", index=False)
-
+processed_data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/Pre-Processed.csv", index=False)
+processed_data.columns
 
 
 ###############################################
@@ -194,7 +215,7 @@ processed_data.to_csv(r"./data/Pre-Processed.csv", index=False)
 ###############################################
 
 processed_data_encoding = processed_data
-
+processed_data_encoding
 #select all the attributes of type object
 carObject= processed_data_encoding.select_dtypes(include=['object']).copy()
 
@@ -210,18 +231,23 @@ processed_data_encoding = minMaxScale.fit_transform(processed_data_encoding)
 processed_data_encoding = pd.DataFrame(processed_data_encoding)
 processed_data_encoding.head()
 
-onehot_encode_cols = ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory',
-                      'VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims',
-                      'AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments',
-                      'AddressChange-Claim', 'NumberOfCars', 'BasePolicy']
+onehot_encode_cols = ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy']
 
 processed_data_encoding_final = pd.get_dummies(carObject, prefix_sep="_",columns=onehot_encode_cols)
+#Dummy encoding done?
+
+processed_data_encoding_final
+
 processed_data_encoding_final['Age']= processed_data_encoding[0]
 processed_data_encoding_final['Deductible']= processed_data_encoding[1]
 processed_data_encoding_final['DriverRating']= processed_data_encoding[2]
 processed_data_encoding_final['DaysDiff']= processed_data_encoding[3]
 
 processed_data_encoding_final['FraudFound'] = yLabel
+processed_data_encoding_final.columns
+processed_data_encoding_final.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/Pre-Processed_OneHotEncoding.csv", index=False)
 
-processed_data_encoding_final.to_csv(r"./data/Pre-Processed_OneHotEncoding.csv", index=False)
+
+
+
 
