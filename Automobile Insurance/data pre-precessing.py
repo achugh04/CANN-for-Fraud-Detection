@@ -244,7 +244,7 @@ processed_data_encoding_final['DriverRating']= processed_data_encoding[2]
 processed_data_encoding_final['DaysDiff']= processed_data_encoding[3]
 
 processed_data_encoding_final['FraudFound'] = yLabel
-processed_data_encoding_final.columns
+print(processed_data_encoding_final.columns.size)
 processed_data_encoding_final.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/Pre-Processed_OneHotEncoding.csv", index=False)
 
 
