@@ -1,18 +1,22 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Apr  9 11:06:54 2022
+
+@author: abhiishekchugh
+"""
+
 import pandas  as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn.datasets import make_classification
+from collections import Counter
+from sklearn.datasets import make_classification as mkc
+from imblearn.under_sampling import NearMiss
+
 
 %matplotlib inline
 
-# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_CBE_FOR_ALL.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_LOOE_FOR_ALL.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh.csv')
-
-
 
 pd.value_counts(data['FraudFound']).plot.bar()
 plt.title('Fraud class histogram')
@@ -25,8 +29,7 @@ y = np.array(data.iloc[:, data.columns == 'FraudFound'])
 print('Shape of X: {}'.format(X.shape))
 print('Shape of y: {}'.format(y.shape))
 
-
-from imblearn.over_sampling import SMOTE
+    
 
 from sklearn.model_selection import train_test_split
 
@@ -37,17 +40,34 @@ print("Number policies  y_train dataset: ", y_train.shape)
 print("Number policies  X_test dataset: ", X_test.shape)
 print("Number policies  y_test dataset: ", y_test.shape)
 
-print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
-print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
+print("Before UnderSampling, counts of label '1': {}".format(sum(y_train==1)))
+print("Before UnderSampling, counts of label '0': {} \n".format(sum(y_train==0)))
+data.columns.size
+# Undersampling step
 
-sm = SMOTE(random_state=42)
-X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+undersample = NearMiss(version=3, n_neighbors=3)
+X_train_res, y_train_res = undersample.fit_resample(X_train, y_train)
 
-print('After OverSampling, the shape of train_X: {}'.format(X_train_res.shape))
-print('After OverSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
 
-print("After OverSampling, counts of label '1': {}".format(sum(y_train_res==1)))
-print("After OverSampling, counts of label '0': {}".format(sum(y_train_res==0)))
+# X_train_res, y_train_res = mkc(n_samples=10794, n_features=98, n_redundant=0, random_state=1)
+
+counter = Counter(y_train_res)
+
+# scatter plot of examples by class label
+for label, _ in counter.items():
+	row_ix = np.where(y_train_res == label)[0]
+	plt.scatter(X_train_res[row_ix, 0], X_train_res[row_ix, 1], label=str(label))
+plt.legend()
+plt.show()
+
+# sm = SMOTE(random_state=42)
+# X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+
+print('After UnderSampling, the shape of train_X: {}'.format(X_train_res.shape))
+print('After UnderSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
+
+print("After UnderSampling, counts of label '1': {}".format(sum(y_train_res==1)))
+print("After UnderSampling, counts of label '0': {}".format(sum(y_train_res==0)))
 
 
 from sklearn.linear_model import LogisticRegression
@@ -142,4 +162,3 @@ plt.xlabel('False Positive Rate')
 plt.show()
 
 roc_auc
-
