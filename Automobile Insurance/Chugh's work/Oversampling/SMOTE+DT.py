@@ -5,13 +5,11 @@ from collections import Counter
 
 
 %matplotlib inline
-
-data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_LOOE_FOR_ALL.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
-# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh.csv')
-
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv')
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv')
+data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
 
 X = np.array(data.iloc[:, data.columns != 'FraudFound'])
 y = np.array(data.iloc[:, data.columns == 'FraudFound'])
@@ -28,8 +26,8 @@ print("Number policies  y_train dataset: ", y_train.shape)
 print("Number policies  X_test dataset: ", X_test.shape)
 print("Number policies  y_test dataset: ", y_test.shape)
 
-print("Before UnderSampling, counts of label '1': {}".format(sum(y_train==1)))
-print("Before UnderSampling, counts of label '0': {} \n".format(sum(y_train==0)))
+print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
+print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
 # data.columns.size
 
 
@@ -50,11 +48,11 @@ plt.show()
 
 
 
-print('After UnderSampling, the shape of train_X: {}'.format(X_train_res.shape))
-print('After UnderSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
+print('After OverSampling, the shape of train_X: {}'.format(X_train_res.shape))
+print('After OverSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
 
-print("After UnderSampling, counts of label '1': {}".format(sum(y_train_res==1)))
-print("After UnderSampling, counts of label '0': {}".format(sum(y_train_res==0)))
+print("After OverSampling, counts of label '1': {}".format(sum(y_train_res==1)))
+print("After OverSampling, counts of label '0': {}".format(sum(y_train_res==0)))
 
 
 

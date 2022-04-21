@@ -135,7 +135,7 @@ processed_data.drop(['FraudFound'], inplace=True, axis=1)
 
 processed_data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv", index=False)
 processed_data.columns
-
+encoding_cols = ['Make','AccidentArea','Sex','MaritalStatus','Fault','PolicyType','VehicleCategory','VehiclePrice','Days:Policy-Accident','PastNumberOfClaims','Days:Policy-Claim','AgeOfVehicle','PoliceReportFiled','WitnessPresent','AgentType','NumberOfSuppliments','AddressChange-Claim','NumberOfCars','BasePolicy']
 
 ###############################################
 # Here onwards we will perform only Label Encoding on Baseline data
@@ -154,83 +154,162 @@ print(data.columns.size)
 data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv",index=False)
 data.columns
 
-###############################################
-# Here onwards we will perform only LOOE
-###############################################
-data = processed_data
 
-for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
-    loue = ce.LeaveOneOutEncoder(cols=[i])
-    data[i] = loue.fit_transform(data[i],yLabel)
-
-data=pd.concat([data,yLabel],axis=1)
-data=data.rename({'daysDiff':'DaysDiff'},axis=1)
-print(data.columns.size)
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_LOOE_FOR_ALL.csv",index=False)
+##############################################
+# Here onwards we will perform only Binary Encoding
+###############################################
+data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
 data.columns
+for i in encoding_cols:
+    be = ce.BinaryEncoder(cols=[i])
+    be_df = be.fit_transform(data[i])
+    data.drop([i],inplace=True, axis=1)
+    data = pd.concat([data,be_df],axis=1)
 
-###############################################
-# Here onwards we will perform only CatBooster Encoding
-###############################################
-data = processed_data
-
-for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
-    cbe = ce.CatBoostEncoder(cols=[i])
-    data[i] = cbe.fit_transform(data[i],yLabel)
-
-data=pd.concat([data,yLabel],axis=1)
-data=data.rename({'daysDiff':'DaysDiff'},axis=1)
-print(data.columns.size)
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_CBE_FOR_ALL.csv",index=False)
-
-
-###############################################
-# Here onwards we will perform only WeightOfEvidence Encoding
-# This encoding is used in the finance industry to detect fraud
-###############################################
-data = processed_data
-
-for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
-    woe = ce.WOEEncoder(cols=[i])
-    data[i] = woe.fit_transform(data[i],yLabel)
-
-data=pd.concat([data,yLabel],axis=1)
-data=data.rename({'daysDiff':'DaysDiff'},axis=1)
-print(data.columns.size)
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv",index=False)
-
-
-###############################################
-# Here onwards we will perform >2 types of encoding
-###############################################
-
-data = processed_data
-
-# For the VehiclePrice and Days:Policy-Accident, AddressChange-Claim column we use Backward Difference Encoding
-for i in ['AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
-    bde = ce.BackwardDifferenceEncoder(cols=[i])
-    bde_df = bde.fit_transform(data[i],yLabel)
-    bde_df.drop(['intercept'],inplace=True, axis=1)
-    data=pd.concat([data,bde_df],axis=1)
-    data.drop([i], inplace=True, axis=1)
-
-data.columns
-
-#doing Leave-Out-One encoding for Make, AgeOVehicle columns
-for i in ['Make','AgeOfVehicle']:
-    cbe = ce.CatBoostEncoder(cols=[i])
-    data[i] = cbe.fit_transform(data[i],yLabel)
-    
-#Target encoding for PoliceReportFiled, WitnessPresentcolumns
-for i in ['PoliceReportFiled','WitnessPresent']:
-    te = ce.TargetEncoder(cols=[i])
-    data[i] = te.fit_transform(data[i],yLabel)
-   
+data.head().T
 data=pd.concat([data,yLabel],axis=1)
 data=data.rename({'daysDiff':'DaysDiff'},axis=1)
 print(data.columns.size)
 # Data['AddressChange-Claim'].unique()
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh.csv",index=False)
+data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv",index=False)
 data.columns
+# ###############################################
+# # Here onwards we will perform only Ordinal Encoding
+# ###############################################
+
+
+data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
+from sklearn.preprocessing import OrdinalEncoder
+oe = OrdinalEncoder()
+for i in encoding_cols:
+    oe_val = oe.fit_transform(data[i].values.reshape(-1, 1))
+    data.drop([i],inplace=True, axis=1)
+    data = pd.concat([data,pd.DataFrame(oe_val,columns = [i])],axis=1)
+    
+
+data.head().T
+data=pd.concat([data,yLabel],axis=1)
+data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+print(data.columns.size)
+# Data['AddressChange-Claim'].unique()
+data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv",index=False)
+data.columns
+# ###############################################
+# # Here onwards we will perform only Hermet Encoding
+# ###############################################
+data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
+
+
+for i in encoding_cols:    
+    he = ce.HelmertEncoder(cols=[i])
+    he_df = he.fit_transform(data[i])
+    he_df.drop(['intercept'],inplace=True, axis=1)
+    data.drop([i], inplace=True, axis=1)
+    data = pd.concat([data,he_df],axis=1)
+    
+
+
+data.head().T
+data=pd.concat([data,yLabel],axis=1)
+data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+print(data.columns.size)
+# Data['AddressChange-Claim'].unique()
+data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv",index=False)
+data.columns
+
+# ###############################################
+# # Here onwards we will perform only LOOE
+# ###############################################
+
+
+
+# ###############################################
+# # Here onwards we will perform only LOOE
+# ###############################################
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
+
+# for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
+#     loue = ce.LeaveOneOutEncoder(cols=[i])
+#     data[i] = loue.fit_transform(data[i],yLabel)
+
+# data=pd.concat([data,yLabel],axis=1)
+# data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+# print(data.columns.size)
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_LOOE_FOR_ALL.csv",index=False)
+# data.columns
+
+# ###############################################
+# # Here onwards we will perform only CatBooster Encoding
+# ###############################################
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
+# for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
+#     cbe = ce.CatBoostEncoder(cols=[i])
+#     data[i] = cbe.fit_transform(data[i],yLabel)
+
+# data=pd.concat([data,yLabel],axis=1)
+# data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+# print(data.columns.size)
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_CBE_FOR_ALL.csv",index=False)
+
+
+# ###############################################
+# # Here onwards we will perform only WeightOfEvidence Encoding
+# # This encoding is used in the finance industry to detect fraud
+# ###############################################
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
+# for i in ['Make', 'AccidentArea', 'Sex', 'MaritalStatus', 'Fault', 'VehicleCategory','VehiclePrice', 'Days:Policy-Accident', 'Days:Policy-Claim', 'PastNumberOfClaims','AgeOfVehicle', 'PoliceReportFiled', 'WitnessPresent', 'AgentType', 'NumberOfSuppliments','AddressChange-Claim', 'NumberOfCars', 'BasePolicy','PolicyType']:
+#     woe = ce.WOEEncoder(cols=[i])
+#     data[i] = woe.fit_transform(data[i],yLabel)
+
+# data=pd.concat([data,yLabel],axis=1)
+# data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+# print(data.columns.size)
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv",index=False)
+
+
+# ###############################################
+# # Here onwards we will perform >2 types of encoding
+# ###############################################
+
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv")
+# # For the VehiclePrice and Days:Policy-Accident, AddressChange-Claim column we use Backward Difference Encoding
+# for i in ['VehiclePrice', 'Days:Policy-Accident','AddressChange-Claim','BasePolicy']:
+#     bde = ce.BackwardDifferenceEncoder(cols=[i])
+#     bde_df = bde.fit_transform(data[i],yLabel)
+#     bde_df.drop(['intercept'],inplace=True, axis=1)
+#     data=pd.concat([data,bde_df],axis=1)
+#     data.drop([i], inplace=True, axis=1)
+
+# data.columns
+
+# #Performing CatBoost encoding for Make, AgeOVehicle columns
+# for i in ['Make','AgeOfVehicle']:
+#     cbe = ce.CatBoostEncoder(cols=[i])
+#     data[i] = cbe.fit_transform(data[i],yLabel)
+    
+# # Performing LOOE encoding for Month. DayOfWeek, DayOfWeekClaimed, MonthClaimed columns   
+# for i in ['Month','DayOfWeek','DayOfWeekClaimed','MonthClaimed']:
+#     loue = ce.LeaveOneOutEncoder(cols=[i])
+#     data[i] = loue.fit_transform(data[i],yLabel)
+    
+# #Target encoding for PoliceReportFiled, WitnessPresentcolumns
+# for i in ['PoliceReportFiled','WitnessPresent','AgeOfPolicyHolder']:
+#     te = ce.TargetEncoder(cols=[i])
+#     data[i] = te.fit_transform(data[i],yLabel)
+
+# # for i in ['AgeOfPolicyHolder']:    
+# #     hash_df = ce.HashingEncoder(cols=[i])
+# #     hash_df = hash_df.fit_transform(data[i],yLabel)
+# #     data=pd.concat([data,hash_df],axis=1)
+# #     data.drop([i], inplace=True, axis=1)
+    
+
+# data.head().T
+# data=pd.concat([data,yLabel],axis=1)
+# data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+# print(data.columns.size)
+# # Data['AddressChange-Claim'].unique()
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh.csv",index=False)
+# data.columns
 
 
