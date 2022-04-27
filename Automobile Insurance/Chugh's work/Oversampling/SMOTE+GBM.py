@@ -17,7 +17,14 @@ from collections import Counter
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv')
+<<<<<<< Updated upstream
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+=======
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Helmert _Encoding.csv')
+
+>>>>>>> Stashed changes
 
 data['FraudFound'].value_counts()
 
@@ -40,6 +47,7 @@ print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
 print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
 # data.columns.size
 
+<<<<<<< Updated upstream
 
 
 ## SMOTE Step
@@ -59,6 +67,27 @@ for label, _ in counter.items():
     plt.scatter(X_train_res[row_ix, 0], X_train_res[row_ix, 1], label=str(label))
 plt.legend()
 plt.show()
+=======
+X_train_res, y_train_res = X_train, y_train.ravel()
+
+# ## SMOTE Step
+# from imblearn.over_sampling import SMOTE
+
+# sm = SMOTE(random_state=42)
+# X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+
+
+# ## Plotting the Oversampled data using SMOTE
+
+# counter = Counter(y_train_res)
+
+# # scatter plot of examples by class label
+# for label, _ in counter.items():
+#     row_ix = np.where(y_train_res == label)[0]
+#     plt.scatter(X_train_res[row_ix, 0], X_train_res[row_ix, 1], label=str(label))
+# plt.legend()
+# plt.show()
+>>>>>>> Stashed changes
 
 print('After OverSampling, the shape of train_X: {}'.format(X_train_res.shape))
 print('After OverSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
@@ -155,4 +184,27 @@ print("Precision metric in the testing dataset: {}%".format(100*cnf_matrix[0,0]/
 class_names = [0,1]
 plt.figure()
 plot_confusion_matrix(cnf_matrix , classes=class_names, title='Confusion matrix')
+<<<<<<< Updated upstream
 plt.show()
+=======
+plt.show()
+
+
+
+fpr, tpr, thresholds = roc_curve(y_test, y_pred)
+
+roc_auc = auc(fpr,tpr)
+
+# Plot ROC
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr, tpr, 'b',label='AUC = %0.9f'% roc_auc)
+plt.legend(loc='lower right')
+plt.plot([0,1],[0,1],'r--')
+plt.xlim([-0.1,1.0])
+plt.ylim([-0.1,1.01])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+
+roc_auc
+>>>>>>> Stashed changes

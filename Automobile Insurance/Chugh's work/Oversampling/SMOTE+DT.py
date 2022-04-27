@@ -9,7 +9,14 @@ from collections import Counter
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv')
+<<<<<<< Updated upstream
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+=======
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Helmert_Encoding.csv')
+
+>>>>>>> Stashed changes
 
 X = np.array(data.iloc[:, data.columns != 'FraudFound'])
 y = np.array(data.iloc[:, data.columns == 'FraudFound'])
@@ -30,21 +37,21 @@ print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
 print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
 # data.columns.size
 
+X_train_res, y_train_res = X_train, y_train
+# from imblearn.over_sampling import SMOTE
 
-from imblearn.over_sampling import SMOTE
-
-sm = SMOTE(random_state=42)
-X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+# sm = SMOTE(random_state=42)
+# X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
 
 
-counter = Counter(y_train_res)
+# counter = Counter(y_train_res)
 
-# scatter plot of examples by class label
-for label, _ in counter.items():
-    row_ix = np.where(y_train_res == label)[0]
-    plt.scatter(X_train_res[row_ix, 0], X_train_res[row_ix, 1], label=str(label))
-plt.legend()
-plt.show()
+# # scatter plot of examples by class label
+# for label, _ in counter.items():
+#     row_ix = np.where(y_train_res == label)[0]
+#     plt.scatter(X_train_res[row_ix, 0], X_train_res[row_ix, 1], label=str(label))
+# plt.legend()
+# plt.show()
 
 
 
@@ -191,3 +198,22 @@ class_names = [0,1]
 plt.figure()
 plot_confusion_matrix(cnf_matrix , classes=class_names, title='Confusion matrix')
 plt.show()
+
+from sklearn.metrics import confusion_matrix, precision_recall_curve, auc, roc_auc_score, roc_curve, recall_score, classification_report
+
+fpr, tpr, thresholds = roc_curve(y_test, y_pred)
+
+roc_auc = auc(fpr,tpr)
+
+# Plot ROC
+plt.title('Receiver Operating Characteristic')
+plt.plot(fpr, tpr, 'b',label='AUC = %0.9f'% roc_auc)
+plt.legend(loc='lower right')
+plt.plot([0,1],[0,1],'r--')
+plt.xlim([-0.1,1.0])
+plt.ylim([-0.1,1.01])
+plt.ylabel('True Positive Rate')
+plt.xlabel('False Positive Rate')
+plt.show()
+
+roc_auc

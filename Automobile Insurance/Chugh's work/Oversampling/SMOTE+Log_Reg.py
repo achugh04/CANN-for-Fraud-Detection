@@ -9,7 +9,13 @@ from sklearn.datasets import make_classification
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv')
+<<<<<<< Updated upstream
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+=======
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
+# data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
+data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Ordinal_Encoding.csv')
+>>>>>>> Stashed changes
 
 
 
@@ -18,6 +24,13 @@ plt.title('Fraud class histogram')
 plt.xlabel('Fraud Found')
 plt.ylabel('Frequency')
 data['FraudFound'].value_counts()
+
+data = data.replace({'FraudFound':
+    {
+        'Yes': 1,
+        'No': 0
+    }
+})
 
 X = np.array(data.iloc[:, data.columns != 'FraudFound'])
 y = np.array(data.iloc[:, data.columns == 'FraudFound'])
@@ -40,8 +53,11 @@ print("Number policies  y_test dataset: ", y_test.shape)
 print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
 print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
 
-sm = SMOTE(random_state=42)
-X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+X_train_res, y_train_res = X_train, y_train
+
+
+# sm = SMOTE(random_state=42)
+# X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
 
 print('After OverSampling, the shape of train_X: {}'.format(X_train_res.shape))
 print('After OverSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
@@ -132,7 +148,7 @@ roc_auc = auc(fpr,tpr)
 
 # Plot ROC
 plt.title('Receiver Operating Characteristic')
-plt.plot(fpr, tpr, 'b',label='AUC = %0.10f'% roc_auc)
+plt.plot(fpr, tpr, 'b',label='AUC = %0.9f'% roc_auc)
 plt.legend(loc='lower right')
 plt.plot([0,1],[0,1],'r--')
 plt.xlim([-0.1,1.0])
