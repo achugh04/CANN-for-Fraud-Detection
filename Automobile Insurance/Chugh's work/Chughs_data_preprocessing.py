@@ -134,11 +134,9 @@ yLabel = processed_data['FraudFound']
 processed_data.drop(['FraudFound'], inplace=True, axis=1)
 
 processed_data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv", index=False)
-<<<<<<< Updated upstream
-=======
+
 yLabel.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh_Target.csv", index=False)
 
->>>>>>> Stashed changes
 processed_data.columns
 encoding_cols = ['Make','AccidentArea','Sex','MaritalStatus','Fault','PolicyType','VehicleCategory','VehiclePrice','Days:Policy-Accident','PastNumberOfClaims','Days:Policy-Claim','AgeOfVehicle','PoliceReportFiled','WitnessPresent','AgentType','NumberOfSuppliments','AddressChange-Claim','NumberOfCars','BasePolicy']
 
@@ -159,19 +157,7 @@ print(data.columns.size)
 data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Label_Encoding.csv",index=False)
 data.columns
 
-<<<<<<< Updated upstream
 
-##############################################
-# Here onwards we will perform only Binary Encoding
-###############################################
-data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
-data.columns
-for i in encoding_cols:
-    be = ce.BinaryEncoder(cols=[i])
-    be_df = be.fit_transform(data[i])
-    data.drop([i],inplace=True, axis=1)
-    data = pd.concat([data,be_df],axis=1)
-=======
 
 ##############################################
 # Here onwards we will perform only Binary Encoding
@@ -226,30 +212,12 @@ for i in encoding_cols:
     data = pd.concat([data,he_df],axis=1)
     
 
->>>>>>> Stashed changes
 
 data.head().T
 data=pd.concat([data,yLabel],axis=1)
 data=data.rename({'daysDiff':'DaysDiff'},axis=1)
 print(data.columns.size)
 # Data['AddressChange-Claim'].unique()
-<<<<<<< Updated upstream
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv",index=False)
-data.columns
-# ###############################################
-# # Here onwards we will perform only Ordinal Encoding
-# ###############################################
-
-
-data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
-from sklearn.preprocessing import OrdinalEncoder
-oe = OrdinalEncoder()
-for i in encoding_cols:
-    oe_val = oe.fit_transform(data[i].values.reshape(-1, 1))
-    data.drop([i],inplace=True, axis=1)
-    data = pd.concat([data,pd.DataFrame(oe_val,columns = [i])],axis=1)
-    
-=======
 data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv",index=False)
 data.columns
 
@@ -296,37 +264,13 @@ data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detect
 for i in encoding_cols:
     woe = ce.WOEEncoder(cols=[i])
     data[i] = woe.fit_transform(data[i],yLabel)
->>>>>>> Stashed changes
-
-data.head().T
-data=pd.concat([data,yLabel],axis=1)
-data=data.rename({'daysDiff':'DaysDiff'},axis=1)
-print(data.columns.size)
-<<<<<<< Updated upstream
-# Data['AddressChange-Claim'].unique()
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv",index=False)
-data.columns
-# ###############################################
-# # Here onwards we will perform only Hermet Encoding
-# ###############################################
-data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_Chugh.csv")
-
-
-for i in encoding_cols:    
-    he = ce.HelmertEncoder(cols=[i])
-    he_df = he.fit_transform(data[i])
-    he_df.drop(['intercept'],inplace=True, axis=1)
-    data.drop([i], inplace=True, axis=1)
-    data = pd.concat([data,he_df],axis=1)
-    
-
 
 data.head().T
 data=pd.concat([data,yLabel],axis=1)
 data=data.rename({'daysDiff':'DaysDiff'},axis=1)
 print(data.columns.size)
 # Data['AddressChange-Claim'].unique()
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv",index=False)
+data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv",index=False)
 data.columns
 
 # ###############################################
@@ -425,8 +369,7 @@ data.columns
 # data.columns
 
 
-=======
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv",index=False)
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv",index=False)
 
 
 # ###############################################
@@ -474,19 +417,18 @@ data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Au
 # data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh.csv",index=False)
 # data.columns
 
-data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/carclaims.csv")
-data.drop(['FraudFound'], inplace=True, axis=1)
+# data = pd.read_csv("/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/carclaims.csv")
+# data.drop(['FraudFound'], inplace=True, axis=1)
+# # for i in data.columns:
+# #     print(data[i].unique(),i)
 # for i in data.columns:
-#     print(data[i].unique(),i)
-for i in data.columns:
-    woe = ce.WOEEncoder(cols=[i])
-    data[i] = woe.fit_transform(data[i],yLabel)
+#     woe = ce.WOEEncoder(cols=[i])
+#     data[i] = woe.fit_transform(data[i],yLabel)
  
 
-data=pd.concat([data,yLabel],axis=1)
-data=data.rename({'daysDiff':'DaysDiff'},axis=1)
-print(data.columns.size)
-data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Ordinal_Encoding.csv",index=False)
-data.columns
+# data=pd.concat([data,yLabel],axis=1)
+# data=data.rename({'daysDiff':'DaysDiff'},axis=1)
+# print(data.columns.size)
+# data.to_csv(r"/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Ordinal_Encoding.csv",index=False)
+# data.columns
 
->>>>>>> Stashed changes
