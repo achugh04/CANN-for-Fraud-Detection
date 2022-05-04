@@ -1,5 +1,7 @@
 import pandas  as pd
 import matplotlib.pyplot as plt
+from collections import Counter
+
 import numpy as np
 from sklearn.datasets import make_classification
 
@@ -9,13 +11,10 @@ from sklearn.datasets import make_classification
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed_OneHotEncoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Hermet_Encoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Ordinal_Encoding.csv')
-<<<<<<< Updated upstream
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
-=======
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Binary_Encoding.csv')
 # data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_WOE_FOR_ALL.csv')
 data = pd.read_csv('/Users/abhiishekchugh/Documents/GitHub/CANN-for-Fraud-Detection/Automobile Insurance/data/pre-processing done/Pre-Processed-Encoded_Chugh_Baseline_Ordinal_Encoding.csv')
->>>>>>> Stashed changes
 
 
 
@@ -53,11 +52,19 @@ print("Number policies  y_test dataset: ", y_test.shape)
 print("Before OverSampling, counts of label '1': {}".format(sum(y_train==1)))
 print("Before OverSampling, counts of label '0': {} \n".format(sum(y_train==0)))
 
-X_train_res, y_train_res = X_train, y_train
+# X_train_res, y_train_res = X_train, y_train
+counter = Counter(y_train)
+
+# scatter plot of examples by class label
+for label, _ in counter.items():
+    row_ix = np.where(y_train == label)[0]
+    plt.scatter(X_train[row_ix, 0], X_train[row_ix, 1], label=str(label))
+plt.legend()
+plt.show()
 
 
-# sm = SMOTE(random_state=42)
-# X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
+sm = SMOTE(random_state=42)
+X_train_res, y_train_res = sm.fit_resample(X_train, y_train)
 
 print('After OverSampling, the shape of train_X: {}'.format(X_train_res.shape))
 print('After OverSampling, the shape of train_y: {} \n'.format(y_train_res.shape))
